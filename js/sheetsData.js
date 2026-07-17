@@ -28,13 +28,21 @@ function classify(totalQty, stockMonths) {
 }
 
 async function fetchTabRows(tab) {
-  const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=${tab.gid}`;
-  const res = await fetch(url);
-  if (!res.ok) {
-    console.error(`Could not fetch tab "${tab.name}" (gid ${tab.gid})`);
+  const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&gid=${tab.gid}`;
+
+  let text;
+  try {
+    const res = await fetch(url);
+    if (!res.ok) {
+      console.error(`Could not fetch tab "${tab.name}" (gid ${tab.gid}) - HTTP ${res.status}`);
+      return [];
+    }
+    text = await res.text();
+  } catch (err) {
+    console.error(`Network/CORS error fetching tab "${tab.name}" (gid ${tab.gid}):`, err);
     return [];
   }
-  const text = await res.text();
+
   const allRows = parseCSV(text);
 
   const colIndex = Object.fromEntries(
