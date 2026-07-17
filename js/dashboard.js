@@ -30,7 +30,6 @@ async function loadDashboard() {
     document.getElementById("generatedAt").textContent =
       `Last updated: ${new Date(data.generatedAt).toLocaleString()}`;
 
-    populateSalesPersonFilter(data.rows);
     renderSummary(data.summary, data.totalSkus);
     renderTable(data.rows);
 
@@ -41,17 +40,6 @@ async function loadDashboard() {
     document.getElementById("loadingBox").textContent =
       "Could not load inventory data. Check that the sheet is set to 'Anyone with the link can view', and that gid values in config.js are correct.";
   }
-}
-
-function populateSalesPersonFilter(rows) {
-  const select = document.getElementById("salesPersonFilter");
-  const names = [...new Set(rows.map((r) => r.salesPerson).filter(Boolean))];
-  names.forEach((name) => {
-    const opt = document.createElement("option");
-    opt.value = name;
-    opt.textContent = name;
-    select.appendChild(opt);
-  });
 }
 
 function renderSummary(summary, totalSkus) {
@@ -129,16 +117,44 @@ function renderTable(rows) {
 }
 
 // ---- Filters ----
+const COLOUR_TO_STATUS = {
+  red: "out_of_stock",
+  blue: "one_month",
+  amber: "two_three_months",
+  green: "three_twelve_months",
+  black: "dead_stock",
+};
+
+function matchesAgeFilter(row, ageValue) {
+  if (ageValue === "all") return true;
+  if (ageValue === "out_of_stock") return row.status === "out_of_stock";
+
+  if (ageValue.startsWith("month_")) {
+    const n = parseInt(ageValue.split("_")[1], 10);
+    return row.status !== "out_of_stock" && Math.floor(row.stockMonths) === n;
+  }
+
+  if (ageValue.startsWith("year_")) {
+    const n = parseInt(ageValue.split("_")[1], 10);
+    return row.status !== "out_of_stock" && Math.floor(row.stockMonths / 12) === n;
+  }
+
+  return true;
+}
+
+function matchesColourFilter(row, colourValue) {
+  if (colourValue === "all") return true;
+  return row.status === COLOUR_TO_STATUS[colourValue];
+}
+
 function applyFilters() {
   const search = document.getElementById("skuSearch").value.trim().toLowerCase();
   const age = document.getElementById("ageFilter").value;
-  const salesPerson = document.getElementById("salesPersonFilter").value;
+  const colour = document.getElementById("colourFilter").value;
 
   const filtered = allRows.filter((r) => {
     const matchesSearch = !search || r.sku.toLowerCase().includes(search);
-    const matchesAge = age === "all" || r.status === age;
-    const matchesSalesPerson = salesPerson === "all" || r.salesPerson === salesPerson;
-    return matchesSearch && matchesAge && matchesSalesPerson;
+    return matchesSearch && matchesAgeFilter(r, age) && matchesColourFilter(r, colour);
   });
 
   renderTable(filtered);
@@ -146,6 +162,6 @@ function applyFilters() {
 
 document.getElementById("skuSearch").addEventListener("input", applyFilters);
 document.getElementById("ageFilter").addEventListener("change", applyFilters);
-document.getElementById("salesPersonFilter").addEventListener("change", applyFilters);
+document.getElementById("colourFilter").addEventListener("change", applyFilters);
 
 loadDashboard();
