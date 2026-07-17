@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Bluewave Inventory Dashboard</title>
+<link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+<div class="dash-header">
+  <div>
+    <h1>Inventory ageing dashboard</h1>
+    <p id="generatedAt">Loading...</p>
+  </div>
+  <div class="header-right">
+    <span id="userGreeting"></span>
+    <button class="logout-btn" id="logoutBtn">Log out</button>
+  </div>
+</div>
+
+<div class="dash-body">
+
+  <div class="filters-row">
+    <input type="text" id="skuSearch" placeholder="Search SKU..." />
+
+    <select id="ageFilter">
+      <option value="all">Age: all</option>
+      <option value="out_of_stock">Out of stock</option>
+      <option value="one_month">1 month</option>
+      <option value="two_three_months">2-3 months</option>
+      <option value="three_twelve_months">3-12 months</option>
+      <option value="dead_stock">Dead stock (1 year+)</option>
+    </select>
+
+    <select id="salesPersonFilter">
+      <option value="all">Sales person: all</option>
+    </select>
+  </div>
+
+  <div id="loadingBox" class="loading-text">Loading inventory data from Google Sheets...</div>
+
+  <div id="dashboardContent" style="display:none;">
+
+    <div class="top-grid">
+      <div class="cards-grid" id="cardsGrid"></div>
+
+      <div class="pie-card">
+        <p class="pie-title">SKU split by age</p>
+        <div class="pie-chart" id="pieChart">
+          <div class="pie-center">
+            <span class="total-num" id="pieTotal">0</span>
+            <span class="total-label">total SKUs</span>
+          </div>
+        </div>
+        <div class="pie-legend" id="pieLegend"></div>
+      </div>
+    </div>
+
+    <div class="table-card">
+      <table>
+        <thead>
+          <tr>
+            <th style="text-align:left;">SKU</th>
+            <th>Jaipur</th>
+            <th>Mumbai</th>
+            <th>AQV</th>
+            <th>Total qty</th>
+            <th>Monthly avg sale</th>
+            <th>Age (mo)</th>
+            <th style="text-align:left;">Status</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+
+  </div>
+
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/csvParser.js"></script>
+<script src="js/sheetsData.js"></script>
+<script src="js/dashboard.js"></script>
+</body>
+</html>
