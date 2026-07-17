@@ -28,13 +28,13 @@ function classify(totalQty, stockMonths) {
 }
 
 async function fetchTabRows(tab) {
-  const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&gid=${tab.gid}`;
+  const url = `https://docs.google.com/spreadsheets/d/${14FuoqpB0A7X46EpxkP1ouhho-BmvygqpVP9mTPk4hXY}/gviz/tq?tqx=out:csv&gid=${tab.gid}`;
 
   let text;
   try {
     const res = await fetch(url);
     if (!res.ok) {
-      console.error(`Could not fetch tab "${tab.name}" (gid ${tab.gid}) - HTTP ${res.status}`);
+      console.error(`Could not fetch tab "${Current Stock (Alice)}" (gid ${743251402}) - HTTP ${res.status}`);
       return [];
     }
     text = await res.text();
