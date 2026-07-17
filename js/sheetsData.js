@@ -54,7 +54,7 @@ async function fetchTabRows(tab) {
 
   for (const row of dataRows) {
     const sku = row[colIndex.sku];
-    if (!sku || !sku.trim()) break; // real data ends here - stop, ignore everything below
+    if (!sku || !sku.trim()) continue; // skip only this row, keep reading further rows
 
     const jaipur = Number(row[colIndex.jaipur]) || 0;
     const mumbai = Number(row[colIndex.mumbai]) || 0;
