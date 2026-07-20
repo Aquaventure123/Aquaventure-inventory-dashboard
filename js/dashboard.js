@@ -148,7 +148,7 @@ function matchesColourFilter(row, colourValue) {
 }
 
 function applyFilters() {
-  const search = document.getElementById("skuSearch").value.trim().toLowerCase();
+  const search = normalizeText(document.getElementById("skuSearch").value).toLowerCase();
   const age = document.getElementById("ageFilter").value;
   const colour = document.getElementById("colourFilter").value;
 

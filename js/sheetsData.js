@@ -7,6 +7,13 @@ const STATUS_LABELS = {
   unknown: "Unknown",
 };
 
+function normalizeText(value) {
+  return String(value == null ? "" : value)
+    .replace(/\u00A0/g, " ") // non-breaking space -> normal space
+    .replace(/\s+/g, " ") // collapse multiple spaces
+    .trim();
+}
+
 function colLetterToIndex(letter) {
   let result = 0;
   for (let i = 0; i < letter.length; i++) {
@@ -53,8 +60,8 @@ async function fetchTabRows(tab) {
   const result = [];
 
   for (const row of dataRows) {
-    const sku = row[colIndex.sku];
-    if (!sku || !sku.trim()) continue; // skip only this row, keep reading further rows
+    const sku = normalizeText(row[colIndex.sku]);
+    if (!sku) continue; // skip only this row, keep reading further rows
 
     const jaipur = Number(row[colIndex.jaipur]) || 0;
     const mumbai = Number(row[colIndex.mumbai]) || 0;
@@ -68,7 +75,7 @@ async function fetchTabRows(tab) {
     const status = classify(total, stockMonths);
 
     result.push({
-      sku: sku.trim(),
+      sku: sku,
       salesPerson: tab.salesPerson,
       jaipur,
       mumbai,
