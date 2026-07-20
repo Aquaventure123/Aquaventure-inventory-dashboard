@@ -22,6 +22,17 @@ function colLetterToIndex(letter) {
   return result - 1;
 }
 
+function indexToColLetter(index) {
+  let letter = "";
+  index += 1;
+  while (index > 0) {
+    const rem = (index - 1) % 26;
+    letter = String.fromCharCode(65 + rem) + letter;
+    index = Math.floor((index - 1) / 26);
+  }
+  return letter;
+}
+
 function classify(totalQty, stockMonths) {
   const qty = Number(totalQty) || 0;
   const months = Number(stockMonths);
@@ -35,7 +46,18 @@ function classify(totalQty, stockMonths) {
 }
 
 async function fetchTabRows(tab) {
-  const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&gid=${tab.gid}`;
+  const colIndex = Object.fromEntries(
+    Object.entries(tab.columns).map(([key, letter]) => [key, colLetterToIndex(letter)])
+  );
+  const minIndex = Math.min(...Object.values(colIndex));
+  const maxIndex = Math.max(...Object.values(colIndex));
+  const minLetter = indexToColLetter(minIndex);
+  const maxLetter = indexToColLetter(maxIndex);
+
+  // Explicit range starting at dataStartRow stops Google from auto-detecting
+  // "header rows" and silently dropping the first couple of real data rows.
+  const range = `${minLetter}${tab.dataStartRow}:${maxLetter}`;
+  const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&gid=${tab.gid}&headers=0&range=${range}`;
 
   let text;
   try {
@@ -50,27 +72,22 @@ async function fetchTabRows(tab) {
     return [];
   }
 
-  const allRows = parseCSV(text);
-
-  const colIndex = Object.fromEntries(
-    Object.entries(tab.columns).map(([key, letter]) => [key, colLetterToIndex(letter)])
-  );
-
-  const dataRows = allRows.slice(tab.dataStartRow - 1);
+  const dataRows = parseCSV(text);
   const result = [];
 
   for (const row of dataRows) {
-    const sku = normalizeText(row[colIndex.sku]);
+    const sku = normalizeText(row[colIndex.sku - minIndex]);
     if (!sku) continue; // skip only this row, keep reading further rows
 
-    const jaipur = Number(row[colIndex.jaipur]) || 0;
-    const mumbai = Number(row[colIndex.mumbai]) || 0;
-    const aqv = Number(row[colIndex.aqv]) || 0;
-    const total = row[colIndex.total] !== undefined && row[colIndex.total] !== ""
-      ? Number(row[colIndex.total]) || 0
+    const jaipur = Number(row[colIndex.jaipur - minIndex]) || 0;
+    const mumbai = Number(row[colIndex.mumbai - minIndex]) || 0;
+    const aqv = Number(row[colIndex.aqv - minIndex]) || 0;
+    const totalRaw = row[colIndex.total - minIndex];
+    const total = totalRaw !== undefined && totalRaw !== ""
+      ? Number(totalRaw) || 0
       : jaipur + mumbai + aqv;
-    const monthlyAvgSold = Number(row[colIndex.monthlyAvgSold]) || 0;
-    const stockMonths = Number(row[colIndex.stockMonths]);
+    const monthlyAvgSold = Number(row[colIndex.monthlyAvgSold - minIndex]) || 0;
+    const stockMonths = Number(row[colIndex.stockMonths - minIndex]);
 
     const status = classify(total, stockMonths);
 
